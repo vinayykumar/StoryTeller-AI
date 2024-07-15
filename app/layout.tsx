@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import Header from "@/components/Header";
+import StoryWriter from "@/components/StoryWriter";
 
 
 export const metadata: Metadata = {
@@ -15,7 +16,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body>
+      <body className="flex flex-col min-h-screen p-4">
+
         <Header/>
         {children}
       </body>
