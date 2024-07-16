@@ -3,15 +3,10 @@
 import { useState } from "react";
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button";
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-  } from "@/components/ui/select"
+import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue,} from "@/components/ui/select";
 import { SelectItemText } from "@radix-ui/react-select"
 
+const storiesPath = "public/stories"
   
 function StoryWriter() {
 
@@ -31,8 +26,17 @@ function StoryWriter() {
         headers : {
           'Content Type' : 'application/json',
         },
-        body : JSON.stringify({story,pages})
-      })
+        body : JSON.stringify({story,pages,path:storiesPath})
+      });
+
+      if(res.ok && res.body){
+
+      }
+      else{
+        setRunFinished(true);
+        setRunStarted(false);
+        console.log("Failed to start streaming")
+      }
   }
 
   return (
@@ -101,4 +105,4 @@ function StoryWriter() {
   )
 }
 
-export default StoryWriter
+export default StoryWriter;
