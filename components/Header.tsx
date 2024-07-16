@@ -1,5 +1,6 @@
 import Link from "next/link";
-import {FilePen,BookOpen} from 'lucide-react'
+import {FilePen,BookOpen,SunMoon} from 'lucide-react'
+import {LampDemo,LampContainer} from './ui/lamp'
 
 function Header() {
   return (
@@ -21,6 +22,9 @@ function Header() {
           </Link>
           <Link href='/stories'>
            <BookOpen className="w-8 h-8 lg:w-10 lg:h-10 mx-auto text-purple-500 mt-10 border border-purple-500 p-2 rounded-md hover:opacity-50 cursor-pointer" />
+          </Link>
+          <Link href='/stories'>
+           <SunMoon className="w-8 h-8 lg:w-10 lg:h-10 mx-auto text-purple-500 mt-10 border border-purple-500 p-2 rounded-md hover:opacity-50 cursor-pointer" />
           </Link>
         </div>
     </header>

@@ -16,11 +16,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className="flex flex-col min-h-screen p-4">
-
+      <body className=" flex flex-col min-h-screen pr-4 pl-4 pb-4 ">
+        <div className=""></div>
         <Header/>
         {children}
-      </body>
+      </body> 
     </html>
   );
 }

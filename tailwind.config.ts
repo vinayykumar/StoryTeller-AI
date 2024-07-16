@@ -18,6 +18,12 @@ const config = {
       },
     },
     extend: {
+      backgroundImage: {
+        'top-gradient': 'linear-gradient(to bottom, rgba(168, 85, 247, 0.1), rgba(168, 85, 247, 0.05))',
+      },
+      height: {
+        'gradient-height': 'var(--gradient-height, 0.1%)',
+      },      
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
