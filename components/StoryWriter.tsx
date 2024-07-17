@@ -1,111 +1,109 @@
 'use client';
 
 import { useState } from "react";
-import { Textarea } from "@/components/ui/textarea"
+import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue,} from "@/components/ui/select";
-import { SelectItemText } from "@radix-ui/react-select"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Frame } from "@gptscript-ai/gptscript";
 import renderEventMessage from "@/lib/renderEventMessage";
-const storiesPath = "public/stories"
-  
-function StoryWriter() {
 
-  const [story,setStory] = useState<string>("");
-  const [pages,setPages] = useState<number>(1);
-  const [progress,setProgress] = useState<string>("");
-  const [runStarted,setRunStarted] = useState<boolean>(false);
-  const [runFinished,setRunFinished] = useState<boolean | null>(null);
-  const [currentTool,setCurrentTool] = useState<string>("");
-  const [events,setEvents] = useState<Frame[]>([])
+const storiesPath = "public/stories";
+
+function StoryWriter() {
+  const [story, setStory] = useState<string>("");
+  const [pages, setPages] = useState<number>(1);
+  const [progress, setProgress] = useState<string>("");
+  const [runStarted, setRunStarted] = useState<boolean>(false);
+  const [runFinished, setRunFinished] = useState<boolean | null>(null);
+  const [currentTool, setCurrentTool] = useState<string>("");
+  const [events, setEvents] = useState<Frame[]>([]);
 
   async function runScript() {
-      setRunStarted(true);
-      setRunFinished(false);
+    setRunStarted(true);
+    setRunFinished(false);
 
-      const res = await fetch('/api/run-script',{
-        method : 'POST',
-        headers : {
-          'Content-Type' : 'application/json',
+    const res = await fetch('/api/run-script', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
         },
-        body : JSON.stringify({story,pages,path:storiesPath})
+        body: JSON.stringify({ story, pages, path: storiesPath })
       });
 
-      if(res.ok && res.body){
-        console.log("Streaming Started")
+      if (res.ok && res.body) {
+        console.log("Streaming Started");
         const reader = res.body.getReader();
         const decoder = new TextDecoder();
-        handleStream(reader,decoder);
-      }
-      else{
+        handleStream(reader, decoder);
+      } else {
         setRunFinished(true);
         setRunStarted(false);
-        console.log("Failed to start streaming")
+        console.error("Failed to start streaming", await res.text());
       }
   }
 
-  async function handleStream(reader:ReadableStreamDefaultReader<Uint8Array>,decoder:TextDecoder) {
-    while(true){
-      const {done,value} = await reader.read();
-      if(done) break;
-      const chunk = decoder.decode(value,{stream:true});
-
-      const eventData = chunk.split("\n\n").filter((line)=>line.startsWith("event: ")).map((line)=>line.replace(/^event: /,""));
-
+  async function handleStream(reader: ReadableStreamDefaultReader<Uint8Array>, decoder: TextDecoder) {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+  
+      const chunk = decoder.decode(value, { stream: true });
+      console.log('Raw chunk:', chunk);
+  
+      const eventData = chunk.split("\n\n").filter((line)=>line.startsWith("event: ")).map((line) => line.replace(/^event: /, ""));
+      console.log('Event data:', eventData);
+  
       eventData.forEach(data => {
-        try{
+        try {
           const parsedData = JSON.parse(data);
-          if(parsedData.type === "callProgress"){
-            setProgress(
-              parsedData.output[parsedData.output.length-1].content
-            );
+          console.log('Parsed event data:', parsedData);
+  
+          // Handle different event types
+          if (parsedData.type === "callProgress") {
+            setProgress(parsedData.output[parsedData.output.length - 1].content);
             setCurrentTool(parsedData.tool?.description || "");
-          }
-          else if(parsedData.type === "callStart"){
+          } else if (parsedData.type === "callStart") {
             setCurrentTool(parsedData.tool?.description || "");
-          }
-          else if(parsedData.type === "runFinish"){
+          } else if (parsedData.type === "runFinish") {
             setRunFinished(true);
             setRunStarted(false);
-          }
-          else{
+          } else {
             setEvents((prevEvents) => [...prevEvents, parsedData]);
           }
+        } catch (error) {
+          console.log("Failed to parse JSON", error);
         }
-        catch(error){
-          console.log("Failed to parse JSON",error)
-        }
-      })
+      });
     }
   }
+  
 
   return (
     <div className="flex flex-col container p-0">
-
       <section className="flex-1 flex flex-col border border-purple-200 rounded-md p-10 space-y-2">
-        <Textarea 
+        <Textarea
           value={story}
-          onChange={(e)=>setStory(e.target.value)}
-          placeholder="Write a story about a developer who saved the world..." 
+          onChange={(e) => setStory(e.target.value)}
+          placeholder="Write a story about a developer who saved the world..."
           className="text-black"
         />
-        <Select onValueChange={value=>setPages(parseInt(value))}>
+        <Select onValueChange={value => setPages(parseInt(value))}>
           <SelectTrigger>
-                <SelectValue placeholder="How many pages should the story be?"/>
+            <SelectValue placeholder="How many pages should the story be?" />
           </SelectTrigger>
           <SelectContent>
-            {Array.from({length:10},(_,i)=>(
-              <SelectItem key={i} value={String(i+1)}>{i+1}</SelectItem>
+            {Array.from({ length: 10 }, (_, i) => (
+              <SelectItem key={i} value={String(i + 1)}>{i + 1}</SelectItem>
             ))}
           </SelectContent>
         </Select>
 
-        <Button 
-          disabled={!story || !pages || runStarted} 
-          className="w-full" 
+        <Button
+          disabled={!story || !pages || runStarted}
+          className="w-full"
           size='lg'
           onClick={runScript}
-          >Generate Story</Button>
+        >Generate Story</Button>
       </section>
 
       <section className="flex-1 mt-5">
@@ -120,7 +118,6 @@ function StoryWriter() {
             {progress}
           </div>
 
-          {/* Current Tool */}
           {currentTool && (
             <div className="py-10">
               <span className="mr-5">
@@ -129,13 +126,11 @@ function StoryWriter() {
             </div>
           )}
 
-          {/* Rendering the Events */}
-
           <div className="space-y-5">
-            {events.map((event,index)=>(
+            {events.map((event, index) => (
               <div key={index}>
-                  <span className="mr-5">{">>"}</span>
-                  {renderEventMessage(event)}
+                <span className="mr-5">{">>"}</span>
+                {renderEventMessage(event)}
               </div>
             ))}
           </div>
@@ -147,12 +142,10 @@ function StoryWriter() {
               </span>
             </div>
           )}
-
         </div>
       </section>
-
-    </div>  
-  )
+    </div>
+  );
 }
 
 export default StoryWriter;
